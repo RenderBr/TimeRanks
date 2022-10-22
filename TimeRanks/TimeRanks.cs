@@ -14,6 +14,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Terraria.ID;
+using Microsoft.Xna.Framework;
 
 namespace TimeRanks //simplified from White's TimeBasedRanks plugin
 {
@@ -91,8 +93,11 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
             ServerApi.Hooks.NetGreetPlayer.Register(this, OnGreet);
             ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
+            ServerApi.Hooks.NetSendData.Register(this, NetHooks_SendData);
             PlayerHooks.PlayerPostLogin += PostLogin;
         }
+
+
 
         protected override void Dispose(bool disposing)
         {
@@ -112,6 +117,7 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             }
             base.Dispose(disposing);
         }
+
 
         private void OnInitialize(EventArgs e)
         {
@@ -145,6 +151,18 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             {
                 HelpText = "Rewards the player for voting."
             });
+            Commands.ChatCommands.Add(new Command("tbr.rank.check", Balance, "bank", "balance", "money", "m", "b", "bal")
+            {
+                HelpText = "Checks the player's balance."
+            });
+            Commands.ChatCommands.Add(new Command("tbr.rank.check", Pay, "pay", "send", "sendmoney", "transfer")
+            {
+                HelpText = "Transfers money to another player."
+            });
+            Commands.ChatCommands.Add(new Command("tbr.rank.check", Conv, "conv", "convert", "dollastogold")
+            {
+                HelpText = "Transfers money to another player."
+            }); 
             dbManager.InitialSyncPlayers();
         }
 
@@ -160,7 +178,164 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             Players.GetByUsername(player.Name).totaltime += 1500;
         }
 
-        private static void Check(CommandArgs args)
+        public void Conv(CommandArgs args)
+        {
+            if(args.Parameters.Count < 1)
+            {
+                args.Player.SendErrorMessage("Please enter the value of " + config.currencyNamePlural + " you want to convert to coins! Ex. /conv 10 = 1 gold coin");
+                return;
+            }
+
+            int convertedAmount = int.Parse(args.Parameters[0]);
+            int originalAmount = convertedAmount;
+            int plat = 0;
+            int gold = 0;
+            int silver = 0;
+            string statement = "";
+
+            if (convertedAmount <= Players.GetByUsername(args.Player.Name).totalCurrency) { 
+            
+                while(convertedAmount >= 1000)
+                {
+                    plat++;
+                    convertedAmount -= 1000;
+                }
+
+                while(convertedAmount >= 10)
+                {
+                    gold++;
+                    convertedAmount -= 10;
+                }
+
+                while(convertedAmount >= 1)
+                {
+                    silver++;
+                    convertedAmount--;
+                }
+
+                if(plat > 0)
+                {
+                    args.Player.GiveItem(ItemID.PlatinumCoin, plat, 0);
+                }
+                if (gold > 0)
+                {
+                    args.Player.GiveItem(ItemID.GoldCoin, gold, 0);
+                }
+                if (silver > 0)
+                {
+                    args.Player.GiveItem(ItemID.SilverCoin, silver, 0);
+                }
+
+                if(plat > 0)
+                {
+                    statement += "[c/eaeaea:" + plat + " platinum]";
+                    if(gold > 0 || silver > 0)
+                    {
+                        statement += ", ";
+                    }
+                }
+
+                if(gold > 0)
+                {
+                    statement += "[c/ffd03e:" + gold + " gold]";
+                    if(silver > 0)
+                    {
+                        statement += ", and ";
+                    }
+                }
+
+                if (silver > 0)
+                {
+                    statement += "[c/bebebe:" + silver + " silver]";
+                }
+
+
+                Players.GetByUsername(args.Player.Name).totalCurrency -= originalAmount;
+                args.Player.SendMessage("- " + originalAmount + " lost due to conversion", Color.IndianRed);
+                args.Player.SendMessage("You have converted " + originalAmount + " " + config.currencyNamePlural + " into " + statement + " coins!", Color.LightGreen);
+                return;
+
+            }
+            else
+            {
+                args.Player.SendErrorMessage("You don't have this many " + config.currencyNamePlural + "! Who you tryna foo', foo'??");
+                return;
+            }
+        }
+
+        void NetHooks_SendData(SendDataEventArgs e)
+        {
+            if (e.MsgId == PacketTypes.NpcStrike)
+            {
+                NPC npc = Main.npc[e.number];
+                Console.WriteLine("Net ID: " + npc.netID + ", e.Num: " + e.number + ", NPC.Type: " + npc.type);
+                if (npc.life <= 0)
+                {
+                    var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+                    Color color;
+
+                    int totalGiven = 1;
+                    color = Color.Gold;
+
+
+                    if(npc.netID == NPCID.EyeofCthulhu)
+                    {
+                        totalGiven = 5;
+                        color = Color.IndianRed;
+                    }
+
+                    if(npc.netID == NPCID.Pinky)
+                    {
+                        totalGiven = 10;
+                        color = Color.Pink;
+                    }
+
+                    if(npc.netID == NPCID.BlueSlime)
+                    {
+                        totalGiven = 1;
+                        color = Color.Blue;
+                    }
+
+                    if(npc.netID == NPCID.GreenSlime)
+                    {
+                        totalGiven = 1;
+                        color = Color.Green;
+                    }
+
+                    Players.GetByUsername(player[0].Name).totalCurrency += totalGiven;
+                    if(totalGiven == 1)
+                    {
+                        player[0].SendMessage("+ " + totalGiven + " " + config.currencyNameSingular + " from killing " + npc.FullName, color);
+                    }
+                    else
+                    {
+                        player[0].SendMessage("+ " +totalGiven + " " + config.currencyNamePlural + " from killing " + npc.FullName, color);
+                    }
+
+                }
+            }
+        }
+            
+            private static void Balance(CommandArgs args)
+            {
+                var player = Players.GetByUsername(args.Player.Name);
+
+                string PluralSingualar;
+
+                if(player.totalCurrency == 1)
+                {
+                PluralSingualar = config.currencyNameSingular;
+            }
+            else
+            {
+                PluralSingualar = config.currencyNamePlural;
+            }
+
+
+                args.Player.SendMessage("You currently have " + player.totalCurrency + " " + PluralSingualar, Color.LightGoldenrodYellow);
+            }
+
+            private static void Check(CommandArgs args)
         {
             if (args.Parameters.Count > 0)
             {
@@ -190,6 +365,7 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
                             args.Player.SendSuccessMessage("{0}'s total time played: " + players[0].TimePlayed, players[0].name);
                             args.Player.SendSuccessMessage("{0}'s current rank position: " + players[0].GroupPosition + " (" + players[0].Group + ")", players[0].name);
                             args.Player.SendSuccessMessage("{0}'s next rank: " + players[0].NextGroupName + " will unlock in... {1}", players[0].name, players[0].NextRankTime);
+                            args.Player.SendSuccessMessage("{0}'s total currency value (" + config.currencyNamePlural + "): " + players[0].totalCurrency, players[0].name);
                             if (players[0].Online)
                             {
                                 args.Player.SendSuccessMessage("{0} was last online: " + players[0].lastlogin + " (" + players[0].LastOnline.ElapsedString() + " ago)", players[0].name);
@@ -209,6 +385,58 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
                 args.Player.SendSuccessMessage("Your total time played: " + player.TotalTime);
                 args.Player.SendSuccessMessage("Your current rank position: " + player.GroupPosition + " (" + player.Group + ")");
                 args.Player.SendSuccessMessage("Your next rank: " + player.NextGroupName + " will be unlocked in... " + player.NextRankTime);
+                args.Player.SendMessage("Your " + config.currencyNameSingular + " amount: " + player.totalCurrency, Color.Gold);
+            }
+        }
+
+        private static void Pay(CommandArgs args)
+        {
+            TSPlayer playerGettingMoney;
+            int amountBeingTransferred;
+
+            if(args.Parameters.Count < 2)
+            {
+                args.Player.SendErrorMessage("Invalid arguments. Please use this example as reference: /pay Average 100");
+                return;
+            }
+
+            if(TSPlayer.FindByNameOrID(args.Parameters[0]) != null)
+            {
+                playerGettingMoney = TSPlayer.FindByNameOrID(args.Parameters[0].ToString())[0];
+                if(args.Parameters[1] != null)
+                {
+                    amountBeingTransferred = int.Parse(args.Parameters[1]);
+                    if(amountBeingTransferred <= 0)
+                    {
+                        args.Player.SendMessage("You must send a positive value of money!", Color.Orange);
+                        return;
+                    }
+                    if(Players.GetByUsername(args.Player.Name).totalCurrency >= amountBeingTransferred)
+                    {
+                        Players.GetByUsername(args.Player.Name).totalCurrency -= amountBeingTransferred;
+                        Players.GetByUsername(playerGettingMoney.Name).totalCurrency += amountBeingTransferred;
+                        playerGettingMoney.SendMessage("+ " + amountBeingTransferred + "dollas from " + args.Player.Name, Color.LightGreen);
+                        args.Player.SendMessage("- " + amountBeingTransferred + "dollas sent to " + playerGettingMoney.Name, Color.OrangeRed);
+                        return;
+                    }
+                    else
+                    {
+                        args.Player.SendMessage("You do not have the amount you wish to send!", Color.OrangeRed);
+                        playerGettingMoney.SendMessage(args.Player.Name + " tried sending you " + amountBeingTransferred + " dollas but didn't have enough! What a poor little bitch! Haha :>", Color.BlueViolet);
+                        return;
+                    }
+
+                }
+                else
+                {
+                    args.Player.SendMessage("Enter an amount of money you wish to send, ex. /pay" + args.Parameters[0].ToString() + " 100", Color.Red);
+                    return;
+                }
+            }
+            else
+            {
+                args.Player.SendMessage("Invalid player name!", Color.Red);
+                return;
             }
         }
 
@@ -333,9 +561,13 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
 
             var user = TShock.UserAccounts.GetUserAccountByName(player.name);
             var groupIndex = TimeRanks.config.Groups.Keys.ToList().IndexOf(player.Group) + 1;
-
-            if (player.totaltime >= player.NextRankInfo.rankCost)
+            //each currency represents 500 = seconds 
+            if (player.totaltime+player.totalCurrency*50 >= player.NextRankInfo.rankCost)
             {
+                if (player.RankInfo.rankUnlocks != null)
+                {
+                    player.giveDrops();
+                }
                 TShock.UserAccounts.SetUserGroup(user, TimeRanks.config.Groups.Keys.ElementAt(groupIndex));
                 checkUserForRankup(args);
             }
@@ -361,7 +593,7 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             else
             {
                 player = new TrPlayer(args.Player.Account.Name, 0, DateTime.UtcNow.ToString("G"),
-                    DateTime.UtcNow.ToString("G"), 0, null) { tsPlayer = args.Player };
+                    DateTime.UtcNow.ToString("G"), 0, null, 0) { tsPlayer = args.Player };
                 Players.Add(player);
 
                 if (!dbManager.InsertPlayer(player))

@@ -65,8 +65,9 @@ namespace TimeRanks
                     var lastlogin = reader.Get<string>("LastLogin");
                     var totaltime = reader.Get<int>("TotalTime");
                     var lastRewardUsed = reader.Get<string>("LastRewardUsed");
+                    var totalCurrency = reader.Get<int>("totalCurrency");
 
-                    TimeRanks.Players.Add(name, time, firstlogin, lastlogin, totaltime, lastRewardUsed);
+                    TimeRanks.Players.Add(name, time, firstlogin, lastlogin, totaltime, lastRewardUsed, totalCurrency);
                 }
             }
         }

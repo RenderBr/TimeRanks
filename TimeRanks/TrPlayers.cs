@@ -11,9 +11,9 @@ namespace TimeRanks
     {
         public readonly List<TrPlayer> _players = new List<TrPlayer>();
 
-        public void Add(string name, int time, string firstlogin, string lastlogin, int totaltime, string lastRewardUsed)
+        public void Add(string name, int time, string firstlogin, string lastlogin, int totaltime, string lastRewardUsed, int totalCurrency)
         {
-            _players.Add(new TrPlayer(name, time, firstlogin, lastlogin, totaltime, lastRewardUsed));
+            _players.Add(new TrPlayer(name, time, firstlogin, lastlogin, totaltime, lastRewardUsed, totalCurrency));
         }
         public void Add(TrPlayer player)
         {
@@ -45,6 +45,7 @@ namespace TimeRanks
         public readonly string firstlogin;
         public string lastlogin;
         public string lastRewardUsed;
+        public int totalCurrency;
         public string Group
         {
             get
@@ -52,17 +53,26 @@ namespace TimeRanks
                 return !Online ? TShock.UserAccounts.GetUserAccountByName(name).Group : tsPlayer.Group.Name;
             }
         }
+
+        public void giveDrops()
+        {
+            foreach(KeyValuePair<int, int> prop in RankInfo.rankUnlocks)
+            {
+                tsPlayer.GiveItem(prop.Key, prop.Value, 0);
+            }
+            
+        }
         public RankInfo RankInfo
         {
             get
             {
-                return ConfigContainsGroup ? (Group == TimeRanks.config.StartGroup ? new RankInfo(TimeRanks.config.Groups.Keys.ElementAt(0), 0, 0) : TimeRanks.config.Groups.First(g => g.Key == Group).Value) : new RankInfo("none", 0, 0);
+                return ConfigContainsGroup ? (Group == TimeRanks.config.StartGroup ? new RankInfo(TimeRanks.config.Groups.Keys.ElementAt(0), 0, 0, new Dictionary<int, int>()) : TimeRanks.config.Groups.First(g => g.Key == Group).Value) : new RankInfo("none", 0, 0, new Dictionary<int, int>());
             }
         }
         public int time;
         public int totaltime;
 
-        public TrPlayer(string name, int time, string first, string last, int totaltime, string lastRewardUsed)
+        public TrPlayer(string name, int time, string first, string last, int totaltime, string lastRewardUsed, int totalCurrency)
         {
             this.time = totaltime;
             this.name = name;
@@ -70,6 +80,7 @@ namespace TimeRanks
             lastlogin = last;
             this.totaltime = totaltime;
             this.lastRewardUsed = lastRewardUsed;
+            this.totalCurrency = totalCurrency;
         }
 
         public string TotalRegisteredTime
@@ -150,7 +161,7 @@ namespace TimeRanks
         {
             get
             {
-                return ConfigContainsGroup ? (RankInfo.nextGroup == Group ? new RankInfo("max rank", 0, TimeRanks.config.Groups.Values.ElementAt(TimeRanks.config.Groups.Values.Count - 1).derankCost) : TimeRanks.config.Groups[RankInfo.nextGroup]) : new RankInfo("none", 0, 0);
+                return ConfigContainsGroup ? (RankInfo.nextGroup == Group ? new RankInfo("max rank", 0, TimeRanks.config.Groups.Values.ElementAt(TimeRanks.config.Groups.Values.Count - 1).derankCost, new Dictionary<int, int>()) : TimeRanks.config.Groups[RankInfo.nextGroup]) : new RankInfo("none", 0, 0, new Dictionary<int, int>());
             }
         }
 
