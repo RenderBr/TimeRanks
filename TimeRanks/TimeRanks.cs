@@ -155,6 +155,10 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             {
                 HelpText = "Checks the player's balance."
             });
+            Commands.ChatCommands.Add(new Command("tbr.rank.check", BalTop, "topbal", "baltop", "top", "bt")
+            {
+                HelpText = "Checks the server's top earners."
+            });
             Commands.ChatCommands.Add(new Command("tbr.rank.check", Pay, "pay", "send", "sendmoney", "transfer")
             {
                 HelpText = "Transfers money to another player."
@@ -178,6 +182,36 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             Players.GetByUsername(player.Name).totaltime += 1500;
         }
 
+        public void BalTop(CommandArgs args)
+        {
+            List<TrPlayer> bt = Players.GetListByUsername("").ToList();
+            Dictionary<string, int> balTop = new Dictionary<string, int>();
+            Dictionary<string, Color> balFinal = new Dictionary<string, Color>();
+
+            foreach(TrPlayer player in bt)
+            {
+                balTop.Add(player.name, player.totalCurrency);
+            }
+
+            var result = balTop.OrderByDescending(key => key.Value);
+            var quantityList = 1;
+            balFinal.Add("Top Users by Balance (/baltop)", Color.Gold);
+
+            foreach (KeyValuePair<string, int> pair in result)
+            {
+                if(balFinal.Count < 11)
+                {
+                    balFinal.Add(quantityList + ". " + pair.Key + " - " + pair.Value, Color.LightGreen);
+                    quantityList++;
+                }
+            }
+
+            foreach(var item in balFinal)
+            {
+                args.Player.SendMessage(item.Key, item.Value);
+            }
+
+        }
         public void Conv(CommandArgs args)
         {
             if(args.Parameters.Count < 1)
