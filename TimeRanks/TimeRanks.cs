@@ -290,6 +290,18 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
                         color = Color.Pink;
                     }
 
+                    if(npc.netID == NPCID.DemonEye)
+                    {
+                        totalGiven = 2;
+                        color = Color.DarkRed;
+                    }
+
+                    if(npc.netID == NPCID.Zombie)
+                    {
+                        totalGiven = 2;
+                        color = Color.DarkGreen;
+                    }
+
                     if(npc.netID == NPCID.BlueSlime)
                     {
                         totalGiven = 1;
