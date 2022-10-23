@@ -608,11 +608,11 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             var user = TShock.UserAccounts.GetUserAccountByName(player.name);
             var groupIndex = TimeRanks.config.Groups.Keys.ToList().IndexOf(player.Group) + 1;
             //each currency represents 500 = seconds 
-            if (player.totaltime+player.totalCurrency*50 >= player.NextRankInfo.rankCost)
+            if (player.totaltime+player.totalCurrency*5 >= player.NextRankInfo.rankCost)
             {
                 if (player.RankInfo.rankUnlocks != null)
                 {
-                    player.giveDrops();
+                    player.giveDrops(player.tsPlayer);
                 }
                 TShock.UserAccounts.SetUserGroup(user, TimeRanks.config.Groups.Keys.ElementAt(groupIndex));
                 checkUserForRankup(args);

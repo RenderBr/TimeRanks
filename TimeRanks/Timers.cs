@@ -36,13 +36,13 @@ namespace TimeRanks
 
                 if(player.NextRankTime != "group is not part of the ranking system")
                 {
-                    if (player.totaltime+player.totalCurrency >= TimeRanks.config.Groups[player.Group].rankCost)
+                    if (player.totaltime+player.totalCurrency*5 >= TimeRanks.config.Groups[player.Group].rankCost)
                     {
                         TShock.UserAccounts.SetUserGroup(TShock.UserAccounts.GetUserAccountByName(player.name), player.NextGroupName);
 
                         if(player.RankInfo.rankUnlocks != null)
                         {
-                            player.giveDrops();
+                            player.giveDrops(player.tsPlayer);
                         }
 
                         player.tsPlayer.SendWarningMessage("You have ranked up!");

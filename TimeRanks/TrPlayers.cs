@@ -54,11 +54,11 @@ namespace TimeRanks
             }
         }
 
-        public void giveDrops()
+        public void giveDrops(TSPlayer player)
         {
             foreach(KeyValuePair<int, int> prop in RankInfo.rankUnlocks)
             {
-                tsPlayer.GiveItem(prop.Key, prop.Value, 0);
+                player.GiveItem(prop.Key, prop.Value, 0);
             }
             
         }
