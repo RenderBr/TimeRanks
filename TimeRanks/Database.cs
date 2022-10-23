@@ -23,14 +23,15 @@ namespace TimeRanks
                 new SqlColumn("FirstLogin", MySqlDbType.Text),
                 new SqlColumn("LastLogin", MySqlDbType.Text),
                 new SqlColumn("TotalTime", MySqlDbType.Int32),
-                new SqlColumn("LastRewardUsed", MySqlDbType.Text)
+                new SqlColumn("LastRewardUsed", MySqlDbType.Text),
+                new SqlColumn("TotalCurrency", MySqlDbType.Int32)
                 );
             sqlCreator.EnsureTableStructure(table);
         }
 
         public bool InsertPlayer(TrPlayer player)
         {
-            return _db.Query("INSERT INTO TimeRanks (Name, Time, FirstLogin, Lastlogin, TotalTime, LastRewardUsed)" + "VALUES (@0, @1, @2, @3, @4, @5)", player.name, player.time, player.firstlogin, player.lastlogin, player.totaltime, player.lastRewardUsed) != 0; 
+            return _db.Query("INSERT INTO TimeRanks (Name, Time, FirstLogin, Lastlogin, TotalTime, LastRewardUsed, TotalCurrency)" + "VALUES (@0, @1, @2, @3, @4, @5, @6)", player.name, player.time, player.firstlogin, player.lastlogin, player.totaltime, player.lastRewardUsed, player.totalCurrency) != 0; 
         }
 
         public bool DeletePlayer(string player)
@@ -41,8 +42,8 @@ namespace TimeRanks
         public bool SavePlayer(TrPlayer player)
         {
             player.lastlogin = DateTime.UtcNow.ToString("G");
-            return _db.Query("UPDATE TimeRanks SET Time = @0, LastLogin = @1, TotalTime = @2, LastRewardUsed = @4 WHERE Name = @3",
-                player.time, player.lastlogin, player.totaltime, player.name, player.lastRewardUsed) != 0;
+            return _db.Query("UPDATE TimeRanks SET Time = @0, LastLogin = @1, TotalTime = @2, LastRewardUsed = @4, TotalCurrency = @5 WHERE Name = @3",
+                player.time, player.lastlogin, player.totaltime, player.name, player.lastRewardUsed, player.totalCurrency) != 0;
         }
 
         public void SaveAllPlayers()

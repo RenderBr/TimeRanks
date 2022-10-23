@@ -32,6 +32,7 @@ namespace TimeRanks
             {
                 player.time += 5;
                 player.totaltime += 5;
+                player.totalCurrency += 1;
 
 
                 if(player.NextRankTime != "group is not part of the ranking system")
