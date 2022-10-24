@@ -8,7 +8,7 @@ using TShockAPI;
 using TShockAPI.Hooks;
 using Terraria;
 using TerrariaApi.Server;
-using Mono.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using System.Net;
 using System.Net.Http;
@@ -61,7 +61,7 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             switch (TShock.Config.Settings.StorageType.ToLower())
             {
                 case "sqlite":
-                    _db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
+                    _db = new SqliteConnection(string.Format("Data Source={0}",
                         Path.Combine(TShock.SavePath, "TimeRanksData.sqlite")));
                     break;
                 case "mysql":
