@@ -219,10 +219,11 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
         }
         public void Conv(CommandArgs args)
         {
-            if(args.Parameters.Count < 1)
+            if (args.Parameters.Count < 1)
             {
                 args.Player.SendErrorMessage("Please enter the value of " + config.currencyNamePlural + " you want to convert to coins! Ex. /conv 10 = 1 gold coin");
                 return;
+            }
             
 
             int convertedAmount = int.Parse(args.Parameters[0]);
