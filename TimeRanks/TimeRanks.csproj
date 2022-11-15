@@ -20,8 +20,6 @@
     <Reference Include="OTAPI">
       <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\bin\OTAPI.dll</HintPath>
     </Reference>
-    <Reference Include="System.Net" />
-    <Reference Include="System.Web.RegularExpressions" />
     <Reference Include="TerrariaServer">
       <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\bin\TerrariaServer.dll</HintPath>
     </Reference>

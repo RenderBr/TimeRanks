@@ -177,9 +177,14 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             args.Player.SendSuccessMessage("TimeRanks configuration file has been reloaded!");
         }
 
-        public void givePlaytime(TSPlayer player, int time)
+        public static void givePlaytime(TSPlayer player, int time)
         {
             Players.GetByUsername(player.Name).totaltime += 1500;
+        }
+
+        public static void manipulateCurrency(TSPlayer player, int dollas)
+        {
+            Players.GetByUsername(player.Name).totalCurrency += dollas;
         }
 
         public void BalTop(CommandArgs args)
@@ -218,9 +223,13 @@ namespace TimeRanks //simplified from White's TimeBasedRanks plugin
             {
                 args.Player.SendErrorMessage("Please enter the value of " + config.currencyNamePlural + " you want to convert to coins! Ex. /conv 10 = 1 gold coin");
                 return;
-            }
+            
 
             int convertedAmount = int.Parse(args.Parameters[0]);
+                if (convertedAmount < 0)
+                {
+                    args.Player.SendErrorMessage("Value cannot be negative!");
+                }
             int originalAmount = convertedAmount;
             int plat = 0;
             int gold = 0;
